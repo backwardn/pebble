@@ -163,7 +163,10 @@ func runTestReader(t *testing.T, o Options, dir string) {
 				if err != nil {
 					return err.Error()
 				}
-				r = NewReader(f, dbNum, 0, &o)
+				r, err = NewReader(f, dbNum, 0, &o)
+				if err != nil {
+					return err.Error()
+				}
 				dbNum++
 				return ""
 
@@ -334,9 +337,13 @@ func buildTestTable(t *testing.T, numEntries uint64, blockSize int, compression 
 	if err != nil {
 		t.Fatal(err)
 	}
-	return NewReader(f1, 0, 0, &Options{
+	r, err := NewReader(f1, 0, 0, &Options{
 		Cache: cache.New(128 << 20),
 	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return r
 }
 
 func buildBenchmarkTable(b *testing.B, blockSize, restartInterval int) (*Reader, [][]byte) {
@@ -372,9 +379,13 @@ func buildBenchmarkTable(b *testing.B, blockSize, restartInterval int) (*Reader,
 	if err != nil {
 		b.Fatal(err)
 	}
-	return NewReader(f1, 0, 0, &Options{
+	r, err := NewReader(f1, 0, 0, &Options{
 		Cache: cache.New(128 << 20),
-	}), keys
+	})
+	if err != nil {
+		b.Fatal(err)
+	}
+	return r, keys
 }
 
 func BenchmarkTableIterSeekGE(b *testing.B) {
